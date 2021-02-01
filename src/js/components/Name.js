@@ -1,4 +1,4 @@
-import { Component } from '../lib/preact.js';
+import { Component } from 'react';
 import State from '../State.js';
 
 class Name extends Component {

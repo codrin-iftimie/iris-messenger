@@ -1,4 +1,4 @@
-var Gun = (typeof window !== "undefined")? window.Gun : require('../gun');
+var Gun = (typeof window !== "undefined")? window.Gun : require('./gun');
 
 Gun.on('create', function(root){
     if(Gun.TESTING){ root.opt.file = 'radatatest' }
@@ -9,13 +9,13 @@ Gun.on('create', function(root){
     var Radix = Radisk.Radix;
     var dare = Radisk(opt), esc = String.fromCharCode(27);
     var ST = 0;
- 
+
     root.on('put', function(msg){
         this.to.next(msg);
         if((msg._||'').rad){ return } // don't save what just came from a read.
         var id = msg['#'], put = msg.put, soul = put['#'], key = put['.'], val = put[':'], state = put['>'], tmp;
         var DBG = (msg._||'').DBG; DBG && (DBG.sp = DBG.sp || +new Date);
-        var lot = (msg._||'').lot||''; count[id] = (count[id] || 0) + 1; 
+        var lot = (msg._||'').lot||''; count[id] = (count[id] || 0) + 1;
         var S = (msg._||'').RPS || ((msg._||'').RPS = +new Date);
         dare(soul+esc+key, {':': val, '>': state}, dare.one[id] || function(err, ok){
             DBG && (DBG.spd = DBG.spd || +new Date);
@@ -27,14 +27,14 @@ Gun.on('create', function(root){
         DBG && (DBG.sps = DBG.sps || +new Date);
     });
     var count = {}, obj_empty = Gun.obj.empty;
- 
+
     root.on('get', function(msg){
         this.to.next(msg);
         var ctx = msg._||'', DBG = ctx.DBG = msg.DBG; DBG && (DBG.sg = +new Date);
         var id = msg['#'], get = msg.get, soul = msg.get['#'], has = msg.get['.']||'', o = {}, graph, lex, key, tmp, force;
         if('string' == typeof soul){
             key = soul;
-        } else 
+        } else
         if(soul){
             if(u !== (tmp = soul['*'])){ o.limit = force = 1 }
             if(u !== soul['>']){ o.start = soul['>'] }
@@ -45,7 +45,7 @@ Gun.on('create', function(root){
         if(key && !o.limit){ // a soul.has must be on a soul, and not during soul*
             if('string' == typeof has){
                 key = key+esc+(o.atom = has);
-            } else 
+            } else
             if(has){
                 if(u !== has['>']){ o.start = has['>']; o.limit = 1 }
                 if(u !== has['<']){ o.end = has['<']; o.limit = 1 }

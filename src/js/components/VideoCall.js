@@ -1,15 +1,15 @@
-import { Component } from '../lib/preact.js';
-import { html } from '../Helpers.js';
-import { route } from '../lib/preact-router.es.js';
+import { Component } from "react";
+import { html } from "../Helpers.js";
+import { route } from "../lib/preact-router.es.js";
 
-import {chats} from '../Chat.js';
-import {translate as t} from '../Translation.js';
+import { chats } from "../Chat.js";
+import { translate as t } from "../Translation.js";
 
-import State from '../State.js';
+import State from "../State.js";
 
-var ringSound = new Audio('../../audio/ring.mp3');
+var ringSound = new Audio("../../audio/ring.mp3");
 ringSound.loop = true;
-var callSound = new Audio('../../audio/call.mp3');
+var callSound = new Audio("../../audio/call.mp3");
 var callTimeout;
 var callSoundTimeout;
 var callingInterval;
@@ -17,9 +17,16 @@ var incomingCallNotification;
 var userMediaStream;
 var ourIceCandidates;
 
-var localStorageIce = localStorage.getItem('rtcConfig');
-var DEFAULT_RTC_CONFIG = {iceServers: [ { urls: ["stun:turn.hepic.tel"] }, { urls: ["stun:stun.l.google.com:19302"] } ]};
-var RTC_CONFIG = localStorageIce ? JSON.parse(localStorageIce) : DEFAULT_RTC_CONFIG;
+var localStorageIce = localStorage.getItem("rtcConfig");
+var DEFAULT_RTC_CONFIG = {
+  iceServers: [
+    { urls: ["stun:turn.hepic.tel"] },
+    { urls: ["stun:stun.l.google.com:19302"] },
+  ],
+};
+var RTC_CONFIG = localStorageIce
+  ? JSON.parse(localStorageIce)
+  : DEFAULT_RTC_CONFIG;
 
 function getRTCConfig() {
   return RTC_CONFIG;
@@ -28,21 +35,25 @@ function getRTCConfig() {
 function setRTCConfig(c) {
   RTC_CONFIG = c;
   try {
-    localStorage.setItem('rtcConfig', JSON.stringify(RTC_CONFIG));
+    localStorage.setItem("rtcConfig", JSON.stringify(RTC_CONFIG));
   } catch (e) {
     // empty
   }
 }
 
 class VideoCall extends Component {
+  constructor() {
+    super();
+    this.state = {};
+  }
   componentDidMount() {
-    State.local.get('activeCall').put(null);
-    State.local.get('outgoingCall').put(null);
-    State.local.get('incomingCall').put(null);
-    State.local.get('call').open(call => {
+    State.local.get("activeCall").put(null);
+    State.local.get("outgoingCall").put(null);
+    State.local.get("incomingCall").put(null);
+    State.local.get("call").open((call) => {
       this.onCallMessage(call.pub, call.call);
     });
-    State.local.get('incomingCall').on(incomingCall => {
+    State.local.get("incomingCall").on((incomingCall) => {
       if (!incomingCall) {
         clearTimeout(callTimeout);
         ringSound.pause();
@@ -51,42 +62,48 @@ class VideoCall extends Component {
       } else {
         if (this.state.activeCall) return;
         ringSound.play().catch(() => {});
-        this.notifyIfNotVisible(incomingCall, t('incoming_call'));
+        this.notifyIfNotVisible(incomingCall, t("incoming_call"));
       }
-      this.setState({incomingCall});
+      this.setState({ incomingCall });
     });
-    State.local.get('activeCall').on(activeCall => {
-      this.setState({activeCall})
+    State.local.get("activeCall").on((activeCall) => {
+      this.setState({ activeCall });
       this.stopCalling();
     });
-    State.local.get('outgoingCall').on(outgoingCall => {
+    State.local.get("outgoingCall").on((outgoingCall) => {
       outgoingCall && this.onCallUser(outgoingCall);
-      this.setState({outgoingCall});
+      this.setState({ outgoingCall });
     });
   }
 
   async answerCall(pub) {
-    State.local.get('incomingCall').put(null);
-    State.local.get('activeCall').put(pub);
+    State.local.get("incomingCall").put(null);
+    State.local.get("activeCall").put(pub);
     await this.initConnection(false, pub);
   }
 
   onCallMessage(pub, call) {
     this.stopCalling();
-    if (call && call !== 'null' && call.time) {
+    if (call && call !== "null" && call.time) {
       var d = new Date(call.time);
       if (new Date() - d > 5000) {
-        console.log('ignoring old call from', pub);
+        console.log("ignoring old call from", pub);
         return;
       }
       if (call.offer) {
-        if (chats[pub].rejectedTime && (new Date() - chats[pub].rejectedTime < 5000)) {
+        if (
+          chats[pub].rejectedTime &&
+          new Date() - chats[pub].rejectedTime < 5000
+        ) {
           this.rejectCall(pub);
           return;
         }
-        State.local.get('incomingCall').put(pub);
+        State.local.get("incomingCall").put(pub);
         clearTimeout(callTimeout);
-        callTimeout = setTimeout(() => State.local.get('incomingCall').put(null), 5000);
+        callTimeout = setTimeout(
+          () => State.local.get("incomingCall").put(null),
+          5000
+        );
       }
     } else {
       this.callClosed(pub);
@@ -94,24 +111,24 @@ class VideoCall extends Component {
   }
 
   notifyIfNotVisible(pub, text) {
-     if (document.visibilityState !== 'visible') {
+    if (document.visibilityState !== "visible") {
       incomingCallNotification = new Notification(chats[pub].name, {
-        icon: 'img/icon128.png',
+        icon: "img/icon128.png",
         body: text,
         requireInteraction: true,
-        silent: true
+        silent: true,
       });
-      incomingCallNotification.onclick = function() {
-        route('/chat/' + pub);
+      incomingCallNotification.onclick = function () {
+        route("/chat/" + pub);
         window.focus();
       };
     }
   }
 
   resetCalls() {
-    State.local.get('outgoingCall').put(null);
-    State.local.get('activeCall').put(null);
-    State.local.get('incomingCall').put(null);
+    State.local.get("outgoingCall").put(null);
+    State.local.get("activeCall").put(null);
+    State.local.get("incomingCall").put(null);
   }
 
   callClosed(pub) {
@@ -119,11 +136,11 @@ class VideoCall extends Component {
     this.resetCalls();
     if (this.state.outgoingCall) {
       this.stopUserMedia(pub);
-      this.notifyIfNotVisible(t('call_rejected'));
+      this.notifyIfNotVisible(t("call_rejected"));
     } else if (this.state.activeCall) {
       this.stopUserMedia(pub);
-      chats[pub].put('call', 'null');
-      this.notifyIfNotVisible(t('call_ended'));
+      chats[pub].put("call", "null");
+      this.notifyIfNotVisible(t("call_ended"));
     }
     chats[pub].pc && chats[pub].pc.close();
     chats[pub].pc = null;
@@ -132,19 +149,19 @@ class VideoCall extends Component {
   async addStreamToPeerConnection(pc) {
     var constraints = {
       audio: true,
-      video: true
+      video: true,
     };
     userMediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-    userMediaStream.getTracks().forEach(track => {
+    userMediaStream.getTracks().forEach((track) => {
       pc.addTrack(track, userMediaStream);
     });
-    const localVideo = $('#localvideo');
+    const localVideo = $("#localvideo");
     localVideo[0].srcObject = userMediaStream;
-    localVideo[0].onloadedmetadata = function() {
+    localVideo[0].onloadedmetadata = function () {
       localVideo[0].muted = true;
       localVideo[0].play();
     };
-    localVideo.attr('disabled', true);
+    localVideo.attr("disabled", true);
   }
 
   timeoutPlayCallSound() {
@@ -152,39 +169,42 @@ class VideoCall extends Component {
   }
 
   async onCallUser(pub, video = true) {
-    if (this.state.outgoingCall) { return; }
+    if (this.state.outgoingCall) {
+      return;
+    }
 
     await this.initConnection(true, pub);
-    console.log('calling', pub);
-    var call = () => chats[pub].put('call', {
-      time: new Date().toISOString(),
-      type: video ? 'video' : 'voice',
-      offer: true,
-    });
+    console.log("calling", pub);
+    var call = () =>
+      chats[pub].put("call", {
+        time: new Date().toISOString(),
+        type: video ? "video" : "voice",
+        offer: true,
+      });
     callingInterval = setInterval(call, 1000);
     call();
-    callSound.addEventListener('ended', () => this.timeoutPlayCallSound());
+    callSound.addEventListener("ended", () => this.timeoutPlayCallSound());
     callSound.play();
-    State.local.get('outgoingCall').put(pub);
+    State.local.get("outgoingCall").put(pub);
   }
 
   cancelCall(pub) {
-    State.local.get('outgoingCall').put(null);
+    State.local.get("outgoingCall").put(null);
     this.stopCalling();
     this.stopUserMedia(pub);
-    chats[pub].put('call', 'null');
+    chats[pub].put("call", "null");
     chats[pub].pc && chats[pub].pc.close();
     chats[pub].pc = null;
   }
 
   stopUserMedia() {
-    userMediaStream.getTracks().forEach(track => track.stop());
+    userMediaStream.getTracks().forEach((track) => track.stop());
   }
 
   stopCalling() {
-    State.local.get('outgoingCall').put(null);
+    State.local.get("outgoingCall").put(null);
     callSound.pause();
-    callSound.removeEventListener('ended', () => this.timeoutPlayCallSound());
+    callSound.removeEventListener("ended", () => this.timeoutPlayCallSound());
     clearTimeout(callSoundTimeout);
     callSound.currentTime = 0;
     clearInterval(callingInterval);
@@ -194,20 +214,20 @@ class VideoCall extends Component {
   endCall(pub) {
     chats[pub].pc && chats[pub].pc.close();
     this.stopUserMedia(pub);
-    chats[pub].put('call', 'null');
+    chats[pub].put("call", "null");
     chats[pub].pc = null;
-    State.local.get('activeCall').put(null);
+    State.local.get("activeCall").put(null);
   }
 
   rejectCall(pub) {
     chats[pub].rejectedTime = new Date();
-    State.local.get('incomingCall').put(null);
-    console.log('rejectCall', pub, chats[pub]);
-    chats[pub].put('call', 'null');
+    State.local.get("incomingCall").put(null);
+    console.log("rejectCall", pub, chats[pub]);
+    chats[pub].put("call", "null");
   }
 
   async initConnection(createOffer, pub) {
-    console.log('initConnection', createOffer, pub);
+    console.log("initConnection", createOffer, pub);
     ourIceCandidates = {};
     const theirIceCandidateKeys = [];
     const chat = chats[pub];
@@ -216,12 +236,14 @@ class VideoCall extends Component {
     await this.addStreamToPeerConnection(chat.pc);
     async function createOfferFn() {
       try {
-        if (chat.isNegotiating) { return; }
+        if (chat.isNegotiating) {
+          return;
+        }
         chat.isNegotiating = true;
         var offer = await chat.pc.createOffer();
         chat.pc.setLocalDescription(offer);
-        console.log('sending our sdp', offer);
-        chat.put('sdp', {time: new Date().toISOString(), data: offer});
+        console.log("sending our sdp", offer);
+        chat.put("sdp", { time: new Date().toISOString(), data: offer });
       } finally {
         chat.isNegotiating = false;
       }
@@ -229,56 +251,79 @@ class VideoCall extends Component {
     if (createOffer) {
       await createOfferFn();
     }
-    chat.onTheir('sdp', async sdp => {
-      console.log('got their sdp', sdp);
-      if (!chat.pc) { console.log(1); return; }
-      if (createOffer && chat.pc.signalingState === 'stable') { console.log(2); return; }
-      if (sdp.data && sdp.time && new Date(sdp.time).getTime() < (new Date() - 5000)) { console.log(3); return; }
+    chat.onTheir("sdp", async (sdp) => {
+      console.log("got their sdp", sdp);
+      if (!chat.pc) {
+        console.log(1);
+        return;
+      }
+      if (createOffer && chat.pc.signalingState === "stable") {
+        console.log(2);
+        return;
+      }
+      if (
+        sdp.data &&
+        sdp.time &&
+        new Date(sdp.time).getTime() < new Date() - 5000
+      ) {
+        console.log(3);
+        return;
+      }
       chat.pc.setRemoteDescription(new RTCSessionDescription(sdp.data));
       console.log(4);
     });
-    chat.onTheir('icecandidates', c => {
-      console.log('got their icecandidates', c);
-      if (!chat.pc || chat.pc.signalingState === 'closed') { return; }
-      if (c.data && c.time && new Date(c.time).getTime() < (new Date() - 5000)) { return; }
-      Object.keys(c.data).forEach(k => {
+    chat.onTheir("icecandidates", (c) => {
+      console.log("got their icecandidates", c);
+      if (!chat.pc || chat.pc.signalingState === "closed") {
+        return;
+      }
+      if (c.data && c.time && new Date(c.time).getTime() < new Date() - 5000) {
+        return;
+      }
+      Object.keys(c.data).forEach((k) => {
         if (theirIceCandidateKeys.indexOf(k) === -1) {
           theirIceCandidateKeys.push(k);
-          chat.pc.addIceCandidate(new RTCIceCandidate(c.data[k])).then(console.log, console.error);
+          chat.pc
+            .addIceCandidate(new RTCIceCandidate(c.data[k]))
+            .then(console.log, console.error);
         }
       });
     });
-    chat.pc.onicecandidate = chat.pc.onicecandidate || (({candidate}) => {
-      if (!candidate) return;
-      console.log('sending our ice candidate');
-      var i = Gun.SEA.random(12).toString('base64');
-      ourIceCandidates[i] = candidate;
-      chat.put('icecandidates', {time: new Date().toISOString(), data: ourIceCandidates});
-    });
+    chat.pc.onicecandidate =
+      chat.pc.onicecandidate ||
+      (({ candidate }) => {
+        if (!candidate) return;
+        console.log("sending our ice candidate");
+        var i = Gun.SEA.random(12).toString("base64");
+        ourIceCandidates[i] = candidate;
+        chat.put("icecandidates", {
+          time: new Date().toISOString(),
+          data: ourIceCandidates,
+        });
+      });
     if (createOffer) {
       chat.pc.onnegotiationneeded = async () => {
         createOfferFn();
       };
     }
     chat.pc.onsignalingstatechange = async () => {
-      if (!chat.pc) { return; }
-      console.log(
-        "Signaling State Change:" + chat.pc,
-        chat.pc.signalingState
-      );
+      if (!chat.pc) {
+        return;
+      }
+      console.log("Signaling State Change:" + chat.pc, chat.pc.signalingState);
       switch (chat.pc.signalingState) {
         case "have-remote-offer":
           var answer = await chat.pc.createAnswer({
             offerToReceiveAudio: 1,
-            offerToReceiveVideo: 1
+            offerToReceiveVideo: 1,
           });
           chat.pc.setLocalDescription(answer);
-          chat.put('sdp', {time: new Date().toISOString(), data: answer});
+          chat.put("sdp", { time: new Date().toISOString(), data: answer });
           break;
         case "stable":
           this.stopCalling();
-          console.log('call answered by', pub);
-          State.local.get('activeCall').put(pub);
+          console.log("call answered by", pub);
+          State.local.get("activeCall").put(pub);
           break;
         case "closed":
           console.log("Signalling state is 'closed'");
@@ -287,7 +332,7 @@ class VideoCall extends Component {
       }
     };
     chat.pc.onconnectionstatechange = () => {
-      console.log('iceConnectionState changed', chat.pc.iceConnectionState);
+      console.log("iceConnectionState changed", chat.pc.iceConnectionState);
       switch (chat.pc.iceConnectionState) {
         case "connected":
           break;
@@ -309,63 +354,101 @@ class VideoCall extends Component {
       }
     };
     chat.pc.ontrack = (event) => {
-      console.log('ontrack', event);
-      const remoteVideo = $('#remotevideo');
+      console.log("ontrack", event);
+      const remoteVideo = $("#remotevideo");
       if (remoteVideo[0].srcObject !== event.streams[0]) {
         remoteVideo[0].srcObject = event.streams[0];
-        remoteVideo[0].onloadedmetadata = function() {
-          console.log('metadata loaded');
+        remoteVideo[0].onloadedmetadata = function () {
+          console.log("metadata loaded");
           remoteVideo[0].play();
         };
-        console.log('received remote stream', event);
+        console.log("received remote stream", event);
       }
     };
   }
 
   render() {
-    const resizeButton = html`<span style="cursor:pointer;margin-left:15px;font-size:2em;position:absolute;left:0;top:0" onClick=${() => this.setState({maximized: !this.state.maximized})}>${this.state.maximized ? '-' : '+'}</span>`;
-    const width = this.state.maximized ? '100%' : '400px';
-    const height = this.state.maximized ? '100%' : '400px';
-    const bottom = this.state.maximized ? '0' : '70px';
-    const localVideo = html`<video id="localvideo" autoplay="true" playsinline="true" style="width:50%;max-height:60%" />`;
-    const remoteVideo = html`<video id="remotevideo" autoplay="true" playsinline="true" style="width:50%;max-height:60%" />`;
+    const resizeButton = html`<span
+      style="cursor:pointer;margin-left:15px;font-size:2em;position:absolute;left:0;top:0"
+      onClick=${() => this.setState({ maximized: !this.state.maximized })}
+      >${this.state.maximized ? "-" : "+"}</span
+    >`;
+    const width = this.state.maximized ? "100%" : "400px";
+    const height = this.state.maximized ? "100%" : "400px";
+    const bottom = this.state.maximized ? "0" : "70px";
+    const localVideo = html`<video
+      id="localvideo"
+      autoplay="true"
+      playsinline="true"
+      style="width:50%;max-height:60%"
+    />`;
+    const remoteVideo = html`<video
+      id="remotevideo"
+      autoplay="true"
+      playsinline="true"
+      style="width:50%;max-height:60%"
+    />`;
 
     if (this.state.activeCall) {
-      return html`
-      <div id="active-call" style="position: fixed; right:0; bottom: ${bottom}; height:${height}; width: ${width}; max-width: 100%; text-align: center; background: #000; color: #fff; padding: 15px 0">
+      return html` <div
+        id="active-call"
+        style="position: fixed; right:0; bottom: ${bottom}; height:${height}; width: ${width}; max-width: 100%; text-align: center; background: #000; color: #fff; padding: 15px 0"
+      >
         <div style="margin-bottom:5px;position:relative;height:50px;">
-          ${resizeButton}
-          ${t('on_call_with')} ${chats[this.state.activeCall] && chats[this.state.activeCall].name}
+          ${resizeButton} ${t("on_call_with")}
+          ${chats[this.state.activeCall] && chats[this.state.activeCall].name}
         </div>
-        ${localVideo}
-        ${remoteVideo}
-        <button style="display:block;margin:15px auto" onClick=${() => this.endCall(this.state.activeCall)}>End call</button>
+        ${localVideo} ${remoteVideo}
+        <button
+          style="display:block;margin:15px auto"
+          onClick=${() => this.endCall(this.state.activeCall)}
+        >
+          End call
+        </button>
       </div>`;
     } else if (this.state.outgoingCall) {
-      return html`<div id="outgoing-call" style="position:fixed; right:0; bottom: ${bottom}; height:${height}; width: ${width}; text-align: center; background: #000; color: #fff; padding: 15px">
-        ${t('calling')} ${chats[this.state.outgoingCall] && chats[this.state.outgoingCall].name}
-        <button onClick=${() => this.cancelCall(this.state.outgoingCall)} style="display:block; margin: 15px auto">
-          ${t('cancel')}
+      return html`<div
+        id="outgoing-call"
+        style="position:fixed; right:0; bottom: ${bottom}; height:${height}; width: ${width}; text-align: center; background: #000; color: #fff; padding: 15px"
+      >
+        ${t("calling")}
+        ${chats[this.state.outgoingCall] && chats[this.state.outgoingCall].name}
+        <button
+          onClick=${() => this.cancelCall(this.state.outgoingCall)}
+          style="display:block; margin: 15px auto"
+        >
+          ${t("cancel")}
         </button>
-        ${localVideo}
-        ${remoteVideo}
+        ${localVideo} ${remoteVideo}
       </div>`;
     } else if (this.state.incomingCall) {
       return html`
-        <div id="incoming-call" style="position:fixed; right:0; bottom: ${bottom}; height:${height}; width: ${width}; text-align: center; background: #000; color: #fff; padding: 15px 0">
-          Incoming call from ${chats[this.state.incomingCall] && chats[this.state.incomingCall].name}
-          <button style="display:block; margin: 15px auto" onClick=${() => this.answerCall(this.state.incomingCall)}>${t('answer')}</button>
-          <button style="display:block; margin: 15px auto" onClick=${() => this.rejectCall(this.state.incomingCall)}>${t('reject')}</button>
+        <div
+          id="incoming-call"
+          style="position:fixed; right:0; bottom: ${bottom}; height:${height}; width: ${width}; text-align: center; background: #000; color: #fff; padding: 15px 0"
+        >
+          Incoming call from
+          ${chats[this.state.incomingCall] &&
+          chats[this.state.incomingCall].name}
+          <button
+            style="display:block; margin: 15px auto"
+            onClick=${() => this.answerCall(this.state.incomingCall)}
+          >
+            ${t("answer")}
+          </button>
+          <button
+            style="display:block; margin: 15px auto"
+            onClick=${() => this.rejectCall(this.state.incomingCall)}
+          >
+            ${t("reject")}
+          </button>
         </div>
       `;
     }
+
+    return null;
   }
 }
 
 export default VideoCall;
-export {
-  RTC_CONFIG,
-  DEFAULT_RTC_CONFIG,
-  setRTCConfig,
-  getRTCConfig
-};
+export { RTC_CONFIG, DEFAULT_RTC_CONFIG, setRTCConfig, getRTCConfig };

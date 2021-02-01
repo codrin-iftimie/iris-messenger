@@ -4,8 +4,10 @@ import { translate as t } from '../Translation.js';
 import LanguageSelector from './LanguageSelector.js';
 import QRScanner from '../QRScanner.js';
 import Session from '../Session.js';
-import { Component } from '../lib/preact.js';
+import { Component } from 'react';
 import Helpers from '../Helpers.js';
+import $ from 'jquery'
+import Gun from "../lib/gun"
 
 function onPastePrivKey(event) {
   const val = $(event.target).val();

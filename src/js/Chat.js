@@ -5,6 +5,8 @@ import Notifications from './Notifications.js';
 import PeerManager from './PeerManager.js';
 import Session from './Session.js';
 import { route } from './lib/preact-router.es.js';
+import $ from "jquery"
+import iris from './lib/iris'
 
 const chats = window.chats = {};
 

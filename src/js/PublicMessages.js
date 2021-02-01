@@ -2,7 +2,8 @@ import {addChat} from './Chat.js';
 import { translate as t } from './Translation.js';
 import State from './State.js';
 import Session from './Session.js';
-
+import iris from './lib/iris.js';
+import $ from "jquery"
 let pub;
 
 function twice(f) {

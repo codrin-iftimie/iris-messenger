@@ -1,156 +1,131 @@
-import { Component } from '../lib/preact.js';
-import Helpers, { html } from '../Helpers.js';
-import PublicMessage from './PublicMessage.js';
-import ScrollWindow from '../lib/ScrollWindow.js';
-import State from '../State.js';
+import PublicMessage from "./PublicMessage.js";
+import { InfiniteLoader, List } from "react-virtualized";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import PublicMessages from "../PublicMessages.js";
 
-const size = 10;
+const list = [];
 
-class MessageFeed extends Component {
-  constructor() {
-    super();
-    this.state = {sortedMessages:[]};
-  }
-
-  componentDidMount() {
-    //this.initIntersectionObserver();
-    this.setUpScroller();
-    State.local.get('scrollUp').on(() => this.topClicked());
-  }
-
-  setUpScroller() {
-    this.scroller = new ScrollWindow(this.props.node, {size, onChange: sortedMessages => this.setState({sortedMessages: sortedMessages.reverse()})});
-  }
-
-  componentDidUpdate(prevProps) {
-    if (this.props.node._.id !== prevProps.node._.id) {
-      this.scroller && this.scroller.unsubscribe();
-      this.setUpScroller();
-      this.setState({sortedMessages: []});
-    }
-  }
-
-  componentWillUnmount() {
-    this.scroller && this.scroller.unsubscribe();
-  }
-
-  topClicked() {
-    this.scroller.top();
-    const container = $(this.base).find('.feed-container');
-    container.css({'padding-top': 0, 'padding-bottom': 0});
-    Helpers.animateScrollTop('.main-view');
-  }
-
-  bottomClicked() {
-    this.scroller.bottom();
-    const container = $(this.base).find('.feed-container');
-    container.css({'padding-top': 0, 'padding-bottom': 0});
-  }
-
-  render() {
-    const showButtons = this.scroller && this.scroller.elements.size >= size;
-    return html`
-      <div class="feed-container">
-        ${showButtons ? html`
-          <p>
-            <button onClick=${() => this.scroller.up()}>Up</button>
-            <button onClick=${() => this.topClicked()}>Top</button>
-          </p>
-        `: ''}
-        ${this.state.sortedMessages
-          .map(hash => typeof hash === 'string' ? html`<${PublicMessage} hash=${hash} key=${hash} showName=${true} />` : '')
-        }
-        ${showButtons ? html`
-          <p>
-            <button onClick=${() => this.scroller.down()}>Down</button>
-            <button onClick=${() => this.bottomClicked()}>Bottom</button>
-          </p>
-        `: ''}
-      </div>
-    `;
-  }
-  /*
-  adjustPaddings(isScrollDown) {
-    const container = document.getElementById("container");
-    const currentPaddingTop = getNumFromStyle(container.style.paddingTop);
-    const currentPaddingBottom = getNumFromStyle(container.style.paddingBottom);
-    const remPaddingsVal = 198 * (size / 2); // TODO: calculate actual element heights
-    if (isScrollDown) {
-      container.style.paddingTop = currentPaddingTop + remPaddingsVal + "px";
-      container.style.paddingBottom = currentPaddingBottom === 0 ? "0px" : currentPaddingBottom - remPaddingsVal + "px";
-    } else {
-      container.style.paddingBottom = currentPaddingBottom + remPaddingsVal + "px";
-      if (currentPaddingTop === 0) {
-        $(window).scrollTop($('#post0').offset().top + remPaddingsVal);
-      } else {
-        container.style.paddingTop = currentPaddingTop - remPaddingsVal + "px";
-      }
-    }
-  }
-
-  topSentCallback(entry) {
-    const container = document.getElementById("container");
-
-    const currentY = entry.boundingClientRect.top;
-    const currentRatio = entry.intersectionRatio;
-    const isIntersecting = entry.isIntersecting;
-
-    // conditional check for Scrolling up
-    if (
-      currentY > topSentinelPreviousY &&
-      isIntersecting &&
-      currentRatio >= topSentinelPreviousRatio &&
-      scroller.center !== previousUpIndex && // stop if no new results were received
-      scroller.opts.stickTo !== 'top'
-    ) {
-      previousUpIndex = scroller.center;
-      adjustPaddings(false);
-      scroller.up(size / 2);
-    }
-    topSentinelPreviousY = currentY;
-    topSentinelPreviousRatio = currentRatio;
-  }
-
-  botSentCallback(entry) {
-    const currentY = entry.boundingClientRect.top;
-    const currentRatio = entry.intersectionRatio;
-    const isIntersecting = entry.isIntersecting;
-
-    // conditional check for Scrolling down
-    if (
-      currentY < bottomSentinelPreviousY &&
-      currentRatio > bottomSentinelPreviousRatio &&
-      isIntersecting &&
-      scroller.center !== previousDownIndex &&  // stop if no new results were received
-      scroller.opts.stickTo !== 'bottom'
-    ) {
-      previousDownIndex = scroller.center;
-      adjustPaddings(true);
-      scroller.down(size / 2);
-    }
-    bottomSentinelPreviousY = currentY;
-    bottomSentinelPreviousRatio = currentRatio;
-  }
-
-  initIntersectionObserver() {
-    const options = {
-      //rootMargin: '190px',
-    }
-
-    const callback = entries => {
-      entries.forEach(entry => {
-        if (entry.target.id === 'post0') {
-          topSentCallback(entry);
-        } else if (entry.target.id === `post${size - 1}`) {
-          botSentCallback(entry);
-        }
-      });
-    }
-
-    var observer = new IntersectionObserver(callback, options); // TODO: It's possible to quickly scroll past the sentinels without them firing. Top and bottom sentinels should extend to page top & bottom?
-    observer.observe(document.querySelector("#post0"));
-    observer.observe(document.querySelector(`#post${size - 1}`));
-  } */
+function isRowLoaded({ index }) {
+  return !!list[index];
 }
 
-export default MessageFeed;
+function loadImage(base64) {
+  return new Promise((resolve) => {
+    var img = document.createElement('img');
+      img.src = base64;
+      img.style="max-height: 80vh; max-width=763px";
+      document.body.appendChild(img)
+      img.onload = function() {
+        const height = img.height;
+        document.body.removeChild(img)
+        resolve(height)
+      }
+  })
+}
+
+function loadMoreRows({ startIndex, stopIndex }) {
+
+}
+
+function add({key, hash, height}, elements) {
+  if (elements.has(key)) return elements;
+  return new Map(elements.set(key, {key, hash, height}));
+
+}
+
+export default function MessageFeed(props) {
+  const [bounds, setBounds] = useState();
+  const [messages, updateMessages] = useState(new Map());
+  const [pile, updatePile] = useState(new Map());
+  const wrapEl = useRef(null);
+
+  useEffect(() => {
+    const { offsetWidth, offsetHeight } = wrapEl.current;
+
+    setBounds({
+      width: offsetWidth,
+      height: offsetHeight,
+    });
+  }, []);
+
+  useEffect(() => {
+    const subscribe = (params) => {
+      props.node
+        .get({ ".": params })
+        .map()
+        .on(async(hash, key, a, eve) => {
+          if (!hash) {
+            return
+          }
+          const data = await PublicMessages.getMessageByHash(hash)
+          let height = 172;
+          if (data.signedData.attachments) {
+            height = 172 + 10 + await loadImage(data.signedData.attachments[0].data);
+          }
+          if (data.signedData.text.split('\n').length) {
+            height = height + (data.signedData.text.split('\n').length  - 1)* 18
+          }
+
+          console.log(height)
+          updateMessages((messages) => {
+            return add({key, hash, height}, messages)
+          });
+        });
+    };
+
+    subscribe({ "<": "" });
+  }, []);
+
+  const sortedMessages = useMemo(() => {
+    const sortedKeys = [...messages.keys()].sort();
+    return sortedKeys.map((k) => messages.get(k)).reverse();
+  }, [messages]);
+
+  function rowRenderer({ key, index, style }) {
+    const hash = sortedMessages[index].hash;
+    if (!hash) {
+      return (
+        <div key={key} style={style}>
+          "Decrpting message"
+        </div>
+      );
+    }
+
+    return (
+      <div key={key} style={style}>
+        <PublicMessage key={key} hash={hash} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="feed-messages-wrap" ref={wrapEl}>
+      <InfiniteLoader
+        isRowLoaded={isRowLoaded}
+        loadMoreRows={loadMoreRows}
+        rowCount={sortedMessages.length}
+      >
+        {({ onRowsRendered, registerChild }) => {
+          if (!bounds) {
+            return null;
+          }
+
+          return (
+            <List
+              height={bounds.height}
+              onRowsRendered={onRowsRendered}
+              ref={registerChild}
+              rowCount={sortedMessages.length}
+              rowHeight={({index}) => {
+                console.log(sortedMessages[index])
+               return sortedMessages[index].height
+              }}
+              width={bounds.width}
+              rowRenderer={rowRenderer}
+            />
+          );
+        }}
+      </InfiniteLoader>
+    </div>
+  );
+}

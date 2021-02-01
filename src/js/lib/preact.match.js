@@ -1,4 +1,4 @@
-import { Component } from './preact.js';
+import { Component } from 'react';
 import { subscribers, getCurrentUrl, Link as StaticLink, exec } from './preact-router.es.js';
 import { html } from '../Helpers.js';
 
@@ -13,15 +13,15 @@ export class Match extends Component {
 	componentWillUnmount() {
 		subscribers.splice(subscribers.indexOf(this.update)>>>0, 1);
 	}
-	render(props) {
+	render() {
 		let url = this.nextUrl || getCurrentUrl(),
 			path = url.replace(/\?.+$/,'');
-		this.nextUrl = null;
-		return props.children({
+    this.nextUrl = null;
+		return this.props.children({
 			url,
 			path,
-			matches: exec(path, props.path, {}) !== false
-		});
+			matches: exec(path, this.props.path, {}) !== false
+    });
 	}
 }
 

@@ -1,4 +1,4 @@
-import { Component } from '../lib/preact.js';
+import { Component } from 'react';
 import { html } from '../Helpers.js';
 import State from '../State.js';
 import Session from '../Session.js';
@@ -30,26 +30,26 @@ class ExplorerView extends Component {
           <a href="#/explorer">All</a> ${path ? pathString : ''}
         </p>
         ${path ? html`
-          <${ExplorerNode} indent=${0} showTools=${true} gun=${gun} path=${this.props.node}/>
+          <${ExplorerNode} showTools=${true} gun=${gun} path=${this.props.node}/>
         ` : html`
-          <div class="explorer-row">
+          <div class="explorer-dir">
             ${chevronDown} Public (synced with peers)
-          </div>
-          <div class="explorer-row" style="padding-left: 1em">
-            ${chevronDown} Users
-          </div>
-          <div class="explorer-row" style="padding-left: 2em">
-            ${chevronDown} <a href="#/explorer/public%2F~${encodeURIComponent(Session.getPubKey())}">${Session.getPubKey()}</a>
-          </div>
-          <${ExplorerNode} indent=${3} gun=${State.public} path='public/~${Session.getPubKey()}'/>
-          <div class="explorer-row" style="padding-left: 1em">
-            ${chevronRight} <a href="#/explorer/public%2F%23">#</a> (content-addressed values, such as public posts)
+            <div class="explorer-dir">
+              ${chevronDown} Users
+              <div class="explorer-dir">
+                ${chevronDown} <a href="#/explorer/public%2F~${encodeURIComponent(Session.getPubKey())}">${Session.getPubKey()}</a>
+                <${ExplorerNode} gun=${State.public} path='public/~${Session.getPubKey()}'/>
+              </div>
+            </div>
+            <div class="explorer-dir">
+              ${chevronRight} <a href="#/explorer/%23">#</a>
+            </div>
           </div>
           <br/><br/>
-          <div class="explorer-row">
+          <div class="explorer-dir">
             ${chevronDown} Local (only stored on your device)
+            <${ExplorerNode} gun=${State.local} path='local'/>
           </div>
-          <${ExplorerNode} indent=${1} gun=${State.local} path='local'/>
         `}
 
       </div>
@@ -87,7 +87,6 @@ class ExplorerNode extends Component {
   componentDidMount() {
     this.isMine = this.props.path.indexOf('public/~' + Session.getPubKey()) === 0;
     this.getNode().map().on(async (v, k, c, e) => {
-      if (k === '_') { return; }
       let encryption;
       if (typeof v === 'string' && v.indexOf('SEA{') === 0) {
         try {
@@ -122,20 +121,14 @@ class ExplorerNode extends Component {
     this.setState({children: this.children});
   }
 
-  onShowMoreClick(e, k) {
-    e.preventDefault();
-    this.children[k].showMore = !this.children[k].showMore;
-    this.setState({children: this.children});
-  }
-
   renderChildObject(k) {
     const path = this.props.path + '/' + encodeURIComponent(k);
     return html`
-      <div class="explorer-row" style="padding-left: ${this.props.indent}em">
+      <div class="explorer-dir">
         <span onClick=${e => this.onChildObjectClick(e, k)}>${this.state.children[k].open ? chevronDown : chevronRight}</span>
         <a href="#/explorer/${encodeURIComponent(path)}"><b>${k}</b></a>
+        ${this.state.children[k].open ? html`<${ExplorerNode} gun=${this.props.gun} path=${path}/>` : ''}
       </div>
-      ${this.state.children[k].open ? html`<${ExplorerNode} gun=${this.props.gun} indent=${this.props.indent + 1} path=${path}/>` : ''}
     `;
   }
 
@@ -156,27 +149,13 @@ class ExplorerNode extends Component {
       if (typeof v === 'string' && v.indexOf('data:image') === 0) {
         s = isMine ? html`<iris-img user=${pub} path=${path}/>` : html`<img src=${v}/>`;
       } else {
-        let stringified = JSON.stringify(v);
-        let showToggle;
-        if (stringified.length > 100) {
-          showToggle = true;
-          if (!this.state.children[k].showMore) {
-            stringified = stringified.slice(0, 100);
-          }
-        }
-        s = isMine ? html`
-          <iris-text placeholder="empty" user=${pub} path=${path} editable=${true} json=${true}/>
-        ` :
-        html`
-          <span class=${typeof v === 'string' ? '' : 'iris-non-string'}>${stringified} ${showToggle ? html`
-            <a onClick=${e => this.onShowMoreClick(e, k)} href="">${this.state.children[k].showMore ? 'less' : 'more'}</a>
-          ` : ''}</span>
-        `;
+        s = isMine ? html`<iris-text placeholder="empty" user=${pub} path=${path} editable=${true} json=${true}/>` :
+          html`<span class=${typeof v === 'string' ? '' : 'iris-non-string'}>${JSON.stringify(v)}</span>`;
       }
     }
     return html`
-      <div class="explorer-row" style="padding-left: ${this.props.indent}em">
-        <b class="val">${k}</b>:
+      <div class="explorer-dir">
+        <b>${k}</b>:
         ${encryption ? html`
           <span class="tooltip"><span class="tooltiptext">${encryption} value</span>
             ${decrypted ? '🔓' : ''}
@@ -213,35 +192,32 @@ class ExplorerNode extends Component {
 
   render() {
     return html`
-      ${this.props.indent === 0 ? html`
-        <div class="explorer-row" style="padding-left: ${this.props.indent}em">
-          ${this.props.showTools ? html`
-            <p class="explorer-tools">
-              <a onClick=${() => this.onExpandClicked()}>${this.state.expandAll ? 'Close all' : 'Expand all'}</a>
-              <a onClick=${() => this.showNewItemClicked('object')}>New object</a>
-              <a onClick=${() => this.showNewItemClicked('value')}>New value</a>
-            </p>
-          `: ''}
-          ${this.state.showNewItem ? html`
-            <p>
-              <form onSubmit=${(e) => this.onNewItemSubmit(e)}>
-                <input id="newItemNameInput" type="text" onInput=${e => this.onNewItemNameInput(e)} value=${this.state.newItemName} placeholder="New ${this.state.showNewItem} name"/>
-                <button type="submit">Create</button>
-                <button onClick=${() => this.setState({showNewItem: false})}>Cancel</button>
-              </form>
-            </p>
-          ` : ''}
-        </div>
-      `: ''}
-      ${Object.keys(this.state.children).sort().map(k => {
-
-        const v = this.state.children[k].value;
-        if (typeof v === 'object' && v && v['_']) {
-          return this.renderChildObject(k, v);
-        } else {
-          return this.renderChildValue(k, v);
-        }
-      })}
+      <div class="explorer-dir">
+        ${this.props.showTools ? html`
+          <p class="explorer-tools">
+            <a onClick=${() => this.onExpandClicked()}>${this.state.expandAll ? 'Close all' : 'Expand all'}</a>
+            <a onClick=${() => this.showNewItemClicked('object')}>New object</a>
+            <a onClick=${() => this.showNewItemClicked('value')}>New value</a>
+          </p>
+        `: ''}
+        ${this.state.showNewItem ? html`
+          <p>
+            <form onSubmit=${(e) => this.onNewItemSubmit(e)}>
+              <input id="newItemNameInput" type="text" onInput=${e => this.onNewItemNameInput(e)} value=${this.state.newItemName} placeholder="New ${this.state.showNewItem} name"/>
+              <button type="submit">Create</button>
+              <button onClick=${() => this.setState({showNewItem: false})}>Cancel</button>
+            </form>
+          </p>
+        ` : ''}
+        ${Object.keys(this.state.children).sort().map(k => {
+          const v = this.state.children[k].value;
+          if (typeof v === 'object' && v && v['_']) {
+            return this.renderChildObject(k, v);
+          } else {
+            return this.renderChildValue(k, v);
+          }
+        })}
+      </div>
     `;
   }
 }

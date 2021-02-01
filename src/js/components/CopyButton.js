@@ -1,4 +1,4 @@
-import { Component } from '../lib/preact.js';
+import { Component } from 'react';
 import {html} from '../Helpers.js';
 import {translate as t} from '../Translation.js';
 import Helpers from '../Helpers.js';

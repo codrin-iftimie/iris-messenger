@@ -1,4 +1,4 @@
-import { Component } from '../lib/preact.js';
+import { Component } from 'react';
 import { html } from '../Helpers.js';
 import { translate as t } from '../Translation.js';
 import State from '../State.js';
@@ -10,6 +10,9 @@ import Session from '../Session.js';
 import Notifications from '../Notifications.js';
 import ChatList from './ChatList.js';
 import NewChat from './NewChat.js';
+import _ from "lodash"
+import $ from "jquery"
+import iris from "../lib/iris"
 
 const caretDownSvg = html`
 <svg x="0px" y="0px"

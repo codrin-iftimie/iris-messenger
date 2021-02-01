@@ -1,4 +1,4 @@
-import { Component } from '../lib/preact.js';
+import { Component } from 'react';
 import Helpers, { html } from '../Helpers.js';
 import PublicMessages from '../PublicMessages.js';
 import State from '../State.js';

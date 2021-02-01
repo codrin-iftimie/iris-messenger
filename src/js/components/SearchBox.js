@@ -1,4 +1,4 @@
-import { Component } from '../lib/preact.js';
+import { Component } from 'react';
 import Helpers, { html } from '../Helpers.js';
 import State from '../State.js';
 import Identicon from './Identicon.js';
@@ -6,8 +6,9 @@ import {translate as t} from '../Translation.js';
 import Session from '../Session.js';
 import Fuse from '../lib/fuse.basic.esm.min.js';
 import { followChatLink } from '../Chat.js';
-
+import _ from "lodash"
 const suggestedFollow = 'hyECQHwSo7fgr2MVfPyakvayPeixxsaAWVtZ-vbaiSc.TXIp8MnCtrnW6n2MrYquWPcc-DTmZzMBmc2yaGv9gIU';
+import $ from "jquery"
 
 class SearchBox extends Component {
   constructor() {

@@ -1,4 +1,4 @@
-import { Component } from '../lib/preact.js';
+import { Component } from 'react';
 import { html } from '../Helpers.js';
 import PublicMessage from './PublicMessage.js';
 import MessageForm from './MessageForm.js';

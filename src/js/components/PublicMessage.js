@@ -7,6 +7,9 @@ import State from '../State.js';
 import { route } from '../lib/preact-router.es.js';
 import Message from './Message.js';
 import Session from '../Session.js';
+import Autolinker from "../../js/lib/Autolinker.min"
+import $ from "jquery"
+import iris from "../lib/iris"
 
 const autolinker = new Autolinker({ stripPrefix: false, stripTrailingSlash: false});
 

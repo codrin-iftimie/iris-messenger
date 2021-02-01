@@ -8,6 +8,27 @@
     "http-server": "^0.12.1"
   },
   "scripts": {
-    "start": "echo 'Iris: http://localhost:8080'; npx http-server src --silent"
+    "start": "echo 'Iris: http://localhost:8080'; npx http-server src --silent",
+    "dev": "parcel src/index.html"
+  },
+  "dependencies": {
+    "@gooddollar/react-native-webview-crypto": "^0.*",
+    "bufferutil": "^4.0.1",
+    "gun": "^0.2020.520",
+    "iris": "^0.2.3",
+    "jquery": "^3.5.1",
+    "lodash": "^4.17.20",
+    "parcel-bundler": "^1.12.4",
+    "preact": "^10.5.12",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-virtualized": "^9.22.3",
+    "text-encoding": "^0.7.0",
+    "utf-8-validate": "^5.0.2"
+  },
+  "alias": {
+    "react": "preact/compat",
+    "react-dom/test-utils": "preact/test-utils",
+    "react-dom": "preact/compat"
   }
 }

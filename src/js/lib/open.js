@@ -1,4 +1,4 @@
-var Gun = (typeof window !== "undefined")? window.Gun : require('../gun');
+var Gun = (typeof window !== "undefined")? window.Gun : require('./gun');
 
 Gun.chain.open = function(cb, opt, at){
 	opt = opt || {};

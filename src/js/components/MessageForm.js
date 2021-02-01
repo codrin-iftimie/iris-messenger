@@ -1,10 +1,14 @@
-import { Component } from '../lib/preact.js';
+import { Component } from 'react';
 import { html } from '../Helpers.js';
 import { translate as t } from '../Translation.js';
 import {chats} from '../Chat.js';
 import State from '../State.js';
 import Helpers from '../Helpers.js';
 import Session from '../Session.js';
+import EmojiButton from "../lib/emoji-button"
+import iris from '../lib/iris'
+import $ from "jquery"
+import _ from "lodash"
 
 const notificationServiceUrl = 'https://iris-notifications.herokuapp.com/notify';
 

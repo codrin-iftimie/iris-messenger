@@ -4,6 +4,8 @@ import {chats, getDisplayName} from './Chat.js';
 import { route } from './lib/preact-router.es.js';
 import State from './State.js';
 import { translate as t } from './Translation.js';
+import _ from "lodash"
+import Gun from "./lib/gun"
 
 var notificationSound = new Audio('../../audio/notification.mp3');
 var loginTime;

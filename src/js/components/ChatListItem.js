@@ -1,4 +1,4 @@
-import { Component } from '../lib/preact.js';
+import { Component } from 'react';
 import { html } from '../Helpers.js';
 import { route } from '../lib/preact-router.es.js';
 import { translate as t } from '../Translation.js';

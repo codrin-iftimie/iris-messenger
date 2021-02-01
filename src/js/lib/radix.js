@@ -1,9 +1,9 @@
-;(function(){
+(function(){
 
 	function Radix(){
 		var radix = function(key, val, t){
 			radix.unit = 0;
-			if(!t && u !== val){ 
+			if(!t && u !== val){
 				radix.last = (''+key < radix.last)? radix.last : ''+key;
 				delete (radix.$||{})[_];
 			}
@@ -45,7 +45,7 @@
 				if(u === val){
 					return tmp;
 				}
-			} else 
+			} else
 			if(i == l){
 				//if(u === val){ return (u === (tmp = at['']))? at : tmp } // THIS CODE IS CORRECT, below is
 				if(u === val){ return (u === (tmp = at['']))? at : ((radix.unit = 1) && tmp) } // temporary help??
@@ -58,7 +58,7 @@
 			}
 		}
 		return radix;
-	};
+	}
 
 	Radix.map = function rap(radix, cb, opt, pre){ pre = pre || []; // TODO: BUG: most out-of-memory crashes come from here.
 		var t = ('function' == typeof radix)? radix.$ || {} : radix;
@@ -107,12 +107,12 @@
 	if(typeof window !== "undefined"){
 	  var Gun = window.Gun;
 	  window.Radix = Radix;
-	} else { 
-	  var Gun = require('../gun');
+	} else {
+	  var Gun = require('./gun');
 		try{ module.exports = Radix }catch(e){}
 	}
-	
+
 	var map = Gun.obj.map, no = {}, u;
 	var _ = String.fromCharCode(24);
-	
+
 }());

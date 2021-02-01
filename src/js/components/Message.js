@@ -1,7 +1,9 @@
-import { Component } from '../lib/preact.js';
+import { Component } from 'react';
 import { html } from '../Helpers.js';
 import Helpers from '../Helpers.js';
 import {chats} from '../Chat.js';
+import Autolinker from "../../js/lib/Autolinker.min"
+import $ from "jquery"
 
 const autolinker = new Autolinker({ stripPrefix: false, stripTrailingSlash: false});
 const ANIMATE_DURATION = 200;

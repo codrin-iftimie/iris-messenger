@@ -4,6 +4,10 @@ import { route } from './lib/preact-router.es.js';
 import Helpers from './Helpers.js';
 import Session from './Session.js';
 import {translate as t} from './Translation.js';
+import iris from './lib/iris'
+import _ from 'lodash'
+import $ from "jquery"
+import Gun from "./lib/gun"
 
 var MAX_PEER_LIST_SIZE = 10;
 var maxConnectedPeers = iris.util.isElectron ? 2 : 1;
@@ -122,7 +126,7 @@ function checkGunPeerCount() {
   });
   if (connectedPeers.length < maxConnectedPeers) {
     var unconnectedPeers = _.filter(Object.keys(peers), url => {
-      var addedToGun = _.pluck(Object.values(peersFromGun), 'url').indexOf(url) > -1;
+      var addedToGun = _.map(Object.values(peersFromGun), 'url').indexOf(url) > -1;
       var enabled = peers[url].enabled;
       return enabled && !addedToGun;
     });

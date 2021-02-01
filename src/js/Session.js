@@ -3,6 +3,9 @@ import {chats, addChat, newChat} from './Chat.js';
 import Notifications from './Notifications.js';
 import Helpers from './Helpers.js';
 import { route } from './lib/preact-router.es.js';
+import Gun from "./lib/gun"
+import iris from './lib/iris'
+import _ from "lodash"
 
 let key;
 let myName;
